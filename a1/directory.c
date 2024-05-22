@@ -10,8 +10,6 @@
     #include <direct.h>
     #include "dirent.h"
     #define mkdir(dirname, mode) _mkdir(dirname)
-#else
-    #include <dirent.h>
 #endif
 
 DIR *current_dir = NULL; 
