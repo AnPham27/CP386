@@ -14,6 +14,7 @@
 
 DIR *current_dir = NULL; 
 
+//Create a new directory
 void create_directory() {
     char dirname[100];
     printf("Enter directory name to create: ");
@@ -26,6 +27,7 @@ void create_directory() {
     }
 }
 
+//removes directory 
 void remove_directory() {
     char dirname[100];
     printf("Enter directory name to remove: ");
@@ -33,11 +35,12 @@ void remove_directory() {
 
     if (rmdir(dirname) == 0) {
         printf("Directory '%s' removed successfully.\n", dirname);
-    } else {
+    } else {    //ensuring directory name is valid
         perror("Error removing directory");
     }
 }
 
+//displays current directory
 void print_current_directory() {
     char cwd[256];
     if (getcwd(cwd, sizeof(cwd)) != NULL) {
@@ -47,6 +50,7 @@ void print_current_directory() {
     }
 }
 
+//changes directory one level up 
 void change_directory_up() {
     if (chdir("..") == 0) {
         printf("Changed directory one level up successfully.\n");
@@ -55,6 +59,7 @@ void change_directory_up() {
     }
 }
 
+//read the contents of directory
 void read_directory_contents() {
     char dirname[256];
     printf("Enter directory name to read: ");
@@ -69,11 +74,12 @@ void read_directory_contents() {
             printf("%s\n", dir->d_name);
         }
         closedir(d);
-    } else {
+    } else {    //ensuring directory name is valid
         perror("Error reading directory");
     }
 }
 
+//close directory - if opened 
 void close_current_directory() {
     if (current_dir) {
         closedir(current_dir);
@@ -84,6 +90,7 @@ void close_current_directory() {
     }
 }
 
+//menu display 
 void display_menu() {
     printf("\nSelect the option(s) appropriately by entering the number:\n");
     printf("1. Create a directory\n");
@@ -98,6 +105,7 @@ void display_menu() {
 
 int main() {
     char choice;
+    //exits program when user enters "q". 
     while (1) {
         display_menu();
         scanf(" %c", &choice);
@@ -124,7 +132,7 @@ int main() {
             case 'q':
                 printf("Exiting program.\n");
                 exit(0);
-            default:
+            default:    //continues if user enters bad input
                 printf("Invalid choice. Please try again.\n");
         }
     }
