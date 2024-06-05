@@ -15,23 +15,29 @@
 
 
 
-void sequence(int n, int *seq, ) {
-    int i = 0;
-    //Base case: if number reaches 1, add it to the sequence and return
-    if (n == 1) {
-        seq[i] = 1;
-        return;
+int collatz_seq(int number, int *sequence) {
+    if (number <= 0 || sequence == NULL) {
+        return -1; // Indicate an error
     }
-    //Add the current number to the sequence
-    seq[i] = n;
 
-    //Recursive case: determine the next number in the sequence
-    if (n % 2 == 0) {
-        seqence(n / 2, seq, i + 1);
+    int i = 0;
+
+    //generate Collatz sequence until we reach 1 (end of sequence)
+    while (number != 1) {
+        sequence[i++] = number;
+
+        //update number based on whether it is even or odd
+        if (number % 2 == 0) {
+            number /= 2;
+        } else {
+            number = 3 * number + 1;
+        }
     }
-    else {
-        seqence(3 * n + 1, seq, i + 1);
-    }
+
+    //end of Collatz sequence, add 1
+    sequence[i++] = 1;
+
+    return i; //eeturn the length of the sequence
 }
 
 void handleChildProcess(int *sequence) {
@@ -111,7 +117,7 @@ int main(int argc, char *argv[]) {
         }
 
         // generate collatz sequence for number "i" and store it inside the shared memory object
-        createCollatzSequence(startNumbers[i], sequence);
+        collatz_seq(startNumbers[i], sequence);
 
         // create a child process
         pid_t pid = fork();
