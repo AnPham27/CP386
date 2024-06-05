@@ -49,8 +49,7 @@ void handleChildProcess(int *sequence) {
         if (sequence[j] == 1) {
             printf("\n");
             break;
-        }
-        else {
+        } else {
             printf(" ");
         }
     }
@@ -79,76 +78,60 @@ int *shared_memory_object() {
 }
 
 int main(int argc, char *argv[]) {
-
     
     if (argc != 2) {
-        fprintf(stderr, "Insufficient parameters passed.\n");
+        // Check if the correct number of arguments is passed
+        fprintf(stderr, "Error: Insufficient parameters passed.\n");
         return EXIT_FAILURE;
     }
 
-    // open file to read start numbers from
-    FILE *fp = fopen(argv[1], "r");
-    if (fp == NULL) {
-        perror("Error opening file");
+    // Open the file for reading
+    FILE *file = fopen(argv[1], "r");
+    if (file == NULL) {
+        perror("Error: Unable to open file");
         return EXIT_FAILURE;
     }
 
-    int startNumbers[ARRAY_SIZE];
+    int start_numbers[ARRAY_SIZE];
     int index = 0;
     int num;
 
-
-    
-    while (fscanf(fp, "%d", &num) == 1 && index < ARRAY_SIZE)
-    {
-        startNumbers[index++] = num;    //populate array with every number from the file
+    // Read numbers from the file and populate the array
+    while (fscanf(file, "%d", &num) == 1 && index < ARRAY_SIZE) {
+        start_numbers[index++] = num;
     }
-    fclose(fp);
+    fclose(file);
 
-    
-    for (int i = 0; i < index; i++)
-    {
-        //for loop through array generate collatz sequence for each number
-        // create shared memory object and check if creation was successful
-        int *sequence = shared_memory_object();
-        if (sequence == NULL)
-        {
-            fprintf(stderr, "Failed to create shared memory object.\n");
+    // Process each number in the array
+    for (int i = 0; i < index; i++) {
+        // Create shared memory for the Collatz sequence
+        int *sequence = mmap(NULL, MAX_LENGTH * sizeof(int), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+        if (sequence == MAP_FAILED) {
+            fprintf(stderr, "Error: Failed to create shared memory.\n");
             return EXIT_FAILURE;
         }
 
-        // generate collatz sequence for number "i" and store it inside the shared memory object
-        collatz_seq(startNumbers[i], sequence);
+        // Generate the Collatz sequence for the current number
+        collatz_seq(start_numbers[i], sequence);
 
-        // create a child process
+        // Fork a child process
         pid_t pid = fork();
-
-        if (pid == -1)
-        {
-            perror("Error forking process");
+        if (pid == -1) {
+            perror("Error: Failed to fork process");
             return EXIT_FAILURE;
-        }
-        else if (pid == 0)
-        {
-            // child process => print collatz sequence
-            printf("Child Process: The generated collatz sequence is ");
-            handleChildProcess(sequence);
+        } else if (pid == 0) {
+            // Child process
+            printf("Child Process: Collatz sequence for %d: ", start_numbers[i]);
+            handle_child_process(sequence);
             munmap(sequence, MAX_LENGTH * sizeof(int));
             return EXIT_SUCCESS;
+        } else {
+            // Parent process
+            printf("Parent Process: Reading positive integer %d from file.\n", start_numbers[i]);
+            wait(NULL); // Wait for child process to finish
+            munmap(sequence, MAX_LENGTH * sizeof(int)); // Cleanup shared memory
         }
-        else
-        {
-            // parent process => wait for child process to finish executing
-            printf("Parent Process: The positive integer read from file is %d\n", startNumbers[i]);
-            wait(NULL);
-        }
-
-        //cleanup shared memory
-        munmap(sequence, MAX_LENGTH * sizeof(int));
     }
 
-    // remove shared memory object
-    shm_unlink(SHM_NAME);
-
-    return 0;
+    return EXIT_SUCCESS;
 }
