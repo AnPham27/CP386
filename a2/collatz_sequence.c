@@ -104,15 +104,15 @@ int main(int argc, char *argv[]) {
 
     // Process each number in the array
     for (int i = 0; i < index; i++) {
-        // Create shared memory for the Collatz sequence
-        int *sequence = mmap(NULL, MAX_LENGTH * sizeof(int), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
-        if (sequence == MAP_FAILED) {
-            fprintf(stderr, "Error: Failed to create shared memory.\n");
+        // Allocate memory for the Collatz sequence
+        int *sequence = (int *)malloc(MAX_LENGTH * sizeof(int));
+        if (sequence == NULL) {
+            fprintf(stderr, "Error: Failed to allocate memory.\n");
             return EXIT_FAILURE;
         }
 
         // Generate the Collatz sequence for the current number
-        collatz_seq(start_numbers[i], sequence);
+        generate_collatz_sequence(start_numbers[i], sequence);
 
         // Fork a child process
         pid_t pid = fork();
@@ -123,13 +123,13 @@ int main(int argc, char *argv[]) {
             // Child process
             printf("Child Process: Collatz sequence for %d: ", start_numbers[i]);
             handle_child_process(sequence);
-            munmap(sequence, MAX_LENGTH * sizeof(int));
+            free(sequence);
             return EXIT_SUCCESS;
         } else {
             // Parent process
             printf("Parent Process: Reading positive integer %d from file.\n", start_numbers[i]);
             wait(NULL); // Wait for child process to finish
-            munmap(sequence, MAX_LENGTH * sizeof(int)); // Cleanup shared memory
+            free(sequence); // Cleanup memory
         }
     }
 
