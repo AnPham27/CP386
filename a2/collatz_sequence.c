@@ -12,7 +12,6 @@
 #define MAX_LENGTH 1000
 #define SHM_NAME "/collatz_shm"
 #define ARRAY_SIZE 100
-#define PARAMETERS 2
 
 
 
@@ -80,35 +79,36 @@ int *shared_memory_object() {
 }
 
 int main(int argc, char *argv[]) {
-    if (argc != PARAMETERS)
-    {
+
+    
+    if (argc != 2) {
         fprintf(stderr, "Insufficient parameters passed.\n");
         return EXIT_FAILURE;
     }
 
     // open file to read start numbers from
     FILE *fp = fopen(argv[1], "r");
-    if (fp == NULL)
-    {
+    if (fp == NULL) {
         perror("Error opening file");
         return EXIT_FAILURE;
     }
 
-    // array to store start numbers
     int startNumbers[ARRAY_SIZE];
     int index = 0;
     int num;
 
-    // populate startNumbers array with every number from the file
+
+    
     while (fscanf(fp, "%d", &num) == 1 && index < ARRAY_SIZE)
     {
-        startNumbers[index++] = num;
+        startNumbers[index++] = num;    //populate array with every number from the file
     }
     fclose(fp);
 
-    // iterate through startNumbers array and generate collatz sequence for each number
+    
     for (int i = 0; i < index; i++)
     {
+        //for loop through array generate collatz sequence for each number
         // create shared memory object and check if creation was successful
         int *sequence = shared_memory_object();
         if (sequence == NULL)
@@ -143,7 +143,7 @@ int main(int argc, char *argv[]) {
             wait(NULL);
         }
 
-        // cleanup shared memory
+        //cleanup shared memory
         munmap(sequence, MAX_LENGTH * sizeof(int));
     }
 
