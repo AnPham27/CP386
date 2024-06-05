@@ -8,6 +8,7 @@
 #include <sys/wait.h>
 #include <sys/mman.h>
 
+
 #define MAX_LENGTH 1000
 #define SHM_NAME "/collatz_shm"
 #define ARRAY_SIZE 100
@@ -58,25 +59,25 @@ void handleChildProcess(int *sequence) {
 
 int *shared_memory_object() {
     int shm_fd = shm_open(SHM_NAME, O_CREAT | O_RDWR, 0666);
-
     if (shm_fd == -1) {
-        printf("Error creating shared memory.\n");
+        perror("shm_open");
         exit(1);
     }
 
-    ftruncate(shm_fd, MAX_LENGTH * sizeof(int));
-    int *sequence = mmap(NULL, MAX_LENGTH * sizeof(int), PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);
-    
-    return sequence;
+    if (ftruncate(shm_fd, MAX_LENGTH * sizeof(int)) == -1) {
+        perror("ftruncate");
+        exit(1);
+    }
 
-    if (sequence == MAP_FAILED) {
-          printf("Error mapping shared memory\n");
-          exit(1);
-     }
+    int *shm_ptr = mmap(0, MAX_LENGTH * sizeof(int), PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);
+    if (shm_ptr == MAP_FAILED) {
+        perror("mmap");
+        exit(1);
+    }
 
-     return sequence;
+    return shm_ptr;
+
 }
-
 
 int main(int argc, char *argv[]) {
     if (argc != PARAMETERS)
@@ -109,7 +110,7 @@ int main(int argc, char *argv[]) {
     for (int i = 0; i < index; i++)
     {
         // create shared memory object and check if creation was successful
-        int *sequence = createSharedMemoryObject();
+        int *sequence = shared_memory_object();
         if (sequence == NULL)
         {
             fprintf(stderr, "Failed to create shared memory object.\n");
@@ -149,5 +150,5 @@ int main(int argc, char *argv[]) {
     // remove shared memory object
     shm_unlink(SHM_NAME);
 
-    return EXIT_SUCCESS;
+    return 0;
 }
