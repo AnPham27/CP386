@@ -83,8 +83,7 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "Not enough parameters passed");
         return EXIT_FAILURE;
     }
-
-   
+    
     FILE *file = fopen(argv[1], "r");      // open file to read start numbers from
     if (file == NULL) {
         perror("Failed to open file");
@@ -98,7 +97,9 @@ int main(int argc, char *argv[]) {
     while (fscanf(file, "%d", &num) == 1 && index < ARRAY_SIZE) {
         startNumbers[index++] = num;    //populate array with every number from the file
     }
-    
+    //close file
+    fclose(file);
+
     for (int i = 0; i < index; i++) {
         //for loop through array generate collatz sequence for each number
         // create shared memory object and check if creation was successful
@@ -124,18 +125,16 @@ int main(int argc, char *argv[]) {
         } else {    //parent process
             printf("Parent Process: The positive integer read from file is %d\n", startNumbers[i]);
             wait(NULL);     //Wait for child process to finish
-            free(sequence); //Cleanup memory
         }
 
-        //cleanup shared memory
+        // Clean up
         munmap(sequence, MAX_LENGTH * sizeof(int));
     }
 
     //remove shared memory object
     shm_unlink(SHM_NAME);
-    
-    //close file
-    close(file);
+
+
 
     return 0;
 }
