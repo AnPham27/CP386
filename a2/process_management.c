@@ -1,4 +1,3 @@
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -11,7 +10,7 @@
 #define SHARED_MEMORY_SIZE 4096
 
 // Function to write the output to the file
-void writeOutput(char *command, char *output) {
+void WriteOutput(char *command, char *output) {
     FILE *fp;
     fp = fopen("output.txt", "a");
     fprintf(fp, "The output of: %s : is\n", command);
@@ -69,9 +68,9 @@ int main(int file_num, char *files[]) {
 		wait(NULL);
 
 		// Read commands from shared memory into allocated array
-		char *commands = strdub(shared_mem);
+		char *commands = strdup(shared_mem);
 		if (commands == NULL) {
-			perror("strdub");
+			perror("strdup");
 			exit(1);
 		}
 
@@ -93,8 +92,8 @@ int main(int file_num, char *files[]) {
 			} else if (exec_pid == 0) {
 				// Execute the command
 				close(pipefd[0]);
-				dub2(pipefd[1], STDOUT_FILENO); // Redirect stdout to pipe
-				dub2(pipefd[1], STDERR_FILENO); // Redirect stderr to pipe
+				dup2(pipefd[1], STDOUT_FILENO); // Redirect stdout to pipe
+				dup2(pipefd[1], STDERR_FILENO); // Redirect stderr to pipe
 
 				char *args[] = {"/bin/sh", "-c", command, NULL};
 				execvp(args[0], args);
@@ -132,4 +131,6 @@ int main(int file_num, char *files[]) {
 
 	return 0;
 }
+
+
 
