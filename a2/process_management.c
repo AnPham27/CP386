@@ -116,7 +116,7 @@ int main(int file_num, char *files[]) {
 				}
 
 				close(pipefd[0]);
-				writeOutput(command, output);
+				WriteOutput(command, output);
 
 				wait(NULL); // Wait for the exec child to finish
 			}
