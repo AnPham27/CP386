@@ -1,0 +1,5 @@
+echo "Hello, World!"
+uname -a
+date
+whoami
+ps -aux
