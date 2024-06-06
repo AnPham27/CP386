@@ -1,10 +1,11 @@
-
+#define _POSIX_C_SOURCE 200809L
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <sys/mman.h>
+#include <sys/stat.h>
 #include <fcntl.h>
 #include <string.h>
 #include <ctype.h>
@@ -12,7 +13,7 @@
 #define SHARED_MEMORY_SIZE 4096
 
 // Function to write the output to the file
-void writeOutput(char *command, char *output) {
+void WriteOutput(char *command, char *output) {
     FILE *fp;
     fp = fopen("output.txt", "a");
     fprintf(fp, "The output of: %s : is\n", command);
@@ -72,7 +73,7 @@ int main(int file_num, char *files[]) {
 		// Read commands from shared memory into allocated array
 		char *commands = strdup(shared_mem);
 		if (commands == NULL) {
-			perror("strdub");
+			perror("strdup");
 			exit(1);
 		}
 
@@ -143,4 +144,6 @@ int main(int file_num, char *files[]) {
 
 	return 0;
 }
+
+
 
