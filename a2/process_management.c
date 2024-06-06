@@ -7,6 +7,7 @@
 #include <sys/mman.h>
 #include <fcntl.h>
 #include <string.h>
+#include <ctype.h>
 
 #define SHARED_MEMORY_SIZE 4096
 
@@ -69,7 +70,7 @@ int main(int file_num, char *files[]) {
 		wait(NULL);
 
 		// Read commands from shared memory into allocated array
-		char *commands = strdub(shared_mem);
+		char *commands = strdup(shared_mem);
 		if (commands == NULL) {
 			perror("strdub");
 			exit(1);
@@ -93,8 +94,8 @@ int main(int file_num, char *files[]) {
 			} else if (exec_pid == 0) {
 				// Execute the command
 				close(pipefd[0]);
-				dub2(pipefd[1], STDOUT_FILENO); // Redirect stdout to pipe
-				dub2(pipefd[1], STDERR_FILENO); // Redirect stderr to pipe
+				dup2(pipefd[1], STDOUT_FILENO); // Redirect stdout to pipe
+				dup2(pipefd[1], STDERR_FILENO); // Redirect stderr to pipe
 
 				char *args[] = {"/bin/sh", "-c", command, NULL};
 				execvp(args[0], args);
@@ -114,12 +115,22 @@ int main(int file_num, char *files[]) {
 				}
 
 				close(pipefd[0]);
-				WriteOutput(command, output);
+				writeOutput(command, output);
 
 				wait(NULL); // Wait for the exec child to finish
 			}
 
 			command = strtok(NULL, "\n");
+			char *end;
+
+			if (command != NULL) {
+			    // Trim trailing space
+			    end = command + strlen(command) - 1;
+			    while (end > command && isspace((unsigned char)*end)) end--;
+
+			    // Write new null terminator character
+			    *(end + 1) = '\0';
+			}
 		}
 
 		// Clean up
