@@ -3,7 +3,7 @@
 #include <string.h>
 #include <stdbool.h>
 
-#define MAX 1000
+#define MAX 1048576
 
 typedef struct {
     int start;
@@ -24,7 +24,8 @@ void init_memory(int size) {
 
 int allocate_memory(int requestSize, int process_id, char strategy) {
     int index = -1;
-	printf("strategy: %c", strategy);
+    //printf("strategy: %c\n", strategy);
+    
     if (strategy == 'F') {
         // First Fit
         for (int i = 0; i < blockCount; i++) {
@@ -34,41 +35,18 @@ int allocate_memory(int requestSize, int process_id, char strategy) {
             }
         }
     } else if (strategy == 'B') {
-    // Best Fit
-		int bestFitSize = MAX + 1;
-        printf("block count: %d", blockCount);
-		for (int i = 0; i < blockCount; i++) {
-			if (memory[i].free && memory[i].size >= requestSize && memory[i].size < bestFitSize) {
-				index = i;
-                printf("index %d", index);
-				bestFitSize = memory[i].size;
-			}
-		}
-
-		if (index == -1) {
-			printf("No hole of sufficient size\n");
-			return -1;
-		}
-
-		Block *block = &memory[index];
-
-		// Allocate memory and split block if necessary
-		if (block->size > requestSize) {
-			for (int j = blockCount; j > index + 1; j--) {
-				memory[j] = memory[j - 1];
-			}
-			memory[index + 1].start = block->start + requestSize;
-			memory[index + 1].size = block->size - requestSize;
-			memory[index + 1].free = true;
-			memory[index + 1].process_id = -1;
-			blockCount++;
-		}
-
-		block->size = requestSize;
-		block->free = false;
-		block->process_id = process_id;
-
-		return block->start;
+        // Best Fit
+        int bestFitSize = MAX + 1;  // Initialize to a large value
+        //printf("block count: %d\n", blockCount);
+        for (int i = 0; i < blockCount; i++) {
+            //printf("memory[%d]: free=%d, size=%d, requestSize=%d, bestFitSize=%d\n", 
+            //       i, memory[i].free, memory[i].size, requestSize, bestFitSize);
+            if (memory[i].free && memory[i].size >= requestSize && memory[i].size < bestFitSize) {
+                index = i;
+                bestFitSize = memory[i].size;
+                //printf("Best fit index %d, size %d\n", index, bestFitSize);
+            }
+        }
     } else if (strategy == 'W') {
         // Worst Fit
         int worstFitSize = -1;
@@ -76,10 +54,12 @@ int allocate_memory(int requestSize, int process_id, char strategy) {
             if (memory[i].free && memory[i].size >= requestSize && memory[i].size > worstFitSize) {
                 index = i;
                 worstFitSize = memory[i].size;
+                printf("Worst fit index %d, size %d\n", index, worstFitSize);
             }
         }
     }
 
+    // Check if a suitable block was found
     if (index == -1) {
         printf("No hole of sufficient size\n");
         return -1;
@@ -87,21 +67,23 @@ int allocate_memory(int requestSize, int process_id, char strategy) {
 
     Block *block = &memory[index];
 
-	// Adjust blockCount after splitting
-	if (block->size > requestSize) {
-		for (int j = blockCount; j > index + 1; j--) {
-			memory[j] = memory[j - 1];
-		}
-		memory[index + 1].start = block->start + requestSize;
-		memory[index + 1].size = block->size - requestSize;
-		memory[index + 1].free = true;
-		memory[index + 1].process_id = -1;
-		blockCount++;
-	}
+    // Allocate memory and split block if necessary
+    if (block->size > requestSize) {
+        for (int j = blockCount; j > index + 1; j--) {
+            memory[j] = memory[j - 1];
+        }
+        memory[index + 1].start = block->start + requestSize;
+        memory[index + 1].size = block->size - requestSize;
+        memory[index + 1].free = true;
+        memory[index + 1].process_id = -1;
+        blockCount++;
+    }
+
     block->size = requestSize;
     block->free = false;
     block->process_id = process_id;
-	return block->start;
+
+    return block->start;
 }
 
 int release_memory(int process_id) {
@@ -148,11 +130,31 @@ void compact_memory() {
 }
 
 void status() {
+    int allocatedMemory = 0;
+    int freeMemory = 0;
+
+    printf("Partitions [Allocated memory= ");
     for (int i = 0; i < blockCount; i++) {
-        printf("Block %d: Start = %d, Size = %d, %s, Process ID = %d\n",
-               i, memory[i].start, memory[i].size,
-               memory[i].free ? "Free" : "Allocated",
-               memory[i].process_id);
+        if (!memory[i].free) {
+            allocatedMemory += memory[i].size;
+        } else {
+            freeMemory += memory[i].size;
+        }
+    }
+    printf("%d]:\n", allocatedMemory);
+
+    for (int i = 0; i < blockCount; i++) {
+        if (!memory[i].free) {
+            printf("Address [%d:%d] Process P%d\n", memory[i].start, memory[i].start + memory[i].size - 1, memory[i].process_id);
+        }
+    }
+
+    printf("\nHoles [Free memory= %d]:\n", freeMemory);
+
+    for (int i = 0; i < blockCount; i++) {
+        if (memory[i].free) {
+            printf("Address [%d:%d] len = %d\n", memory[i].start, memory[i].start + memory[i].size - 1, memory[i].size);
+        }
     }
 }
 
