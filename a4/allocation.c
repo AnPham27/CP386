@@ -22,9 +22,15 @@ void init_memory(int size) {
     memory[0].process_id = -1;
 }
 
+int extract_process_id(const char* process_id_str) {
+    if (process_id_str[0] == 'P') {
+        return atoi(process_id_str + 1);
+    }
+    return -1;
+}
+
 int allocate_memory(int requestSize, int process_id, char strategy) {
     int index = -1;
-    //printf("strategy: %c\n", strategy);
     
     if (strategy == 'F') {
         // First Fit
@@ -37,14 +43,10 @@ int allocate_memory(int requestSize, int process_id, char strategy) {
     } else if (strategy == 'B') {
         // Best Fit
         int bestFitSize = MAX + 1;  // Initialize to a large value
-        //printf("block count: %d\n", blockCount);
         for (int i = 0; i < blockCount; i++) {
-            //printf("memory[%d]: free=%d, size=%d, requestSize=%d, bestFitSize=%d\n", 
-            //       i, memory[i].free, memory[i].size, requestSize, bestFitSize);
             if (memory[i].free && memory[i].size >= requestSize && memory[i].size < bestFitSize) {
                 index = i;
                 bestFitSize = memory[i].size;
-                //printf("Best fit index %d, size %d\n", index, bestFitSize);
             }
         }
     } else if (strategy == 'W') {
@@ -54,7 +56,6 @@ int allocate_memory(int requestSize, int process_id, char strategy) {
             if (memory[i].free && memory[i].size >= requestSize && memory[i].size > worstFitSize) {
                 index = i;
                 worstFitSize = memory[i].size;
-                printf("Worst fit index %d, size %d\n", index, worstFitSize);
             }
         }
     }
@@ -87,6 +88,7 @@ int allocate_memory(int requestSize, int process_id, char strategy) {
 }
 
 int release_memory(int process_id) {
+    printf("Releasing memory for process P%d\n", process_id);
     for (int i = 0; i < blockCount; i++) {
         if (memory[i].process_id == process_id && !memory[i].free) {
             memory[i].free = true;
@@ -179,26 +181,37 @@ int main(int argc, char *argv[]) {
         scanf("%s", command);
 
         if (strcmp(command, "RQ") == 0) {
-            int process_id, size;
+            char process_id_str[10];
+            int size;
             char strategy;
-            scanf("%d %d %c", &process_id, &size, &strategy);
+            scanf("%s %d %c", process_id_str, &size, &strategy);
+            int process_id = extract_process_id(process_id_str);
+            if (process_id == -1) {
+                printf("Invalid process ID format\n");
+                continue;
+            }
             int address = allocate_memory(size, process_id, strategy);
             if (address != -1) {
-                printf("Successfully allocated %d to process P%d\n", size, process_id);
+                printf("Successfully allocated %d to process %s\n", size, process_id_str);
             } else {
-                printf("Failed to allocate %d to process P%d\n", size, process_id);
+                printf("Failed to allocate %d to process %s\n", size, process_id_str);
             }
         } else if (strcmp(command, "RL") == 0) {
-            int process_id;
-            scanf("%d", &process_id);
+            char process_id_str[10];
+            scanf("%s", process_id_str);
+            int process_id = extract_process_id(process_id_str);
+            if (process_id == -1) {
+                printf("Invalid process ID format\n");
+                continue;
+            }
             if (release_memory(process_id) == 0) {
-                printf("Memory released for process P%d\n", process_id);
+                printf("Successfully released memory for process %s\n", process_id_str);
             } else {
-                printf("Failed to release memory for process P%d\n", process_id);
+                printf("Failed to release memory for process %s\n", process_id_str);
             }
         } else if (strcmp(command, "C") == 0) {
             compact_memory();
-            printf("Memory compacted\n");
+            printf("Compaction process is successful\n");
         } else if (strcmp(command, "Status") == 0) {
             status();
         } else if (strcmp(command, "Exit") == 0) {
