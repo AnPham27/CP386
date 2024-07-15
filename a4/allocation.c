@@ -22,6 +22,7 @@ void init_memory(int size) {
     memory[0].process_id = -1;
 }
 
+// User inputs process number like: P0, P1, P2 
 int extract_process_id(const char* process_id_str) {
     if (process_id_str[0] == 'P') {
         return atoi(process_id_str + 1);
@@ -29,6 +30,7 @@ int extract_process_id(const char* process_id_str) {
     return -1;
 }
 
+// Allocating memory based on algorithm
 int allocate_memory(int requestSize, int process_id, char strategy) {
     int index = -1;
     
@@ -87,6 +89,7 @@ int allocate_memory(int requestSize, int process_id, char strategy) {
     return block->start;
 }
 
+// Releasing memory that has been allocated to a process
 int release_memory(int process_id) {
     printf("Releasing memory for process P%d\n", process_id);
     for (int i = 0; i < blockCount; i++) {
@@ -113,6 +116,7 @@ int release_memory(int process_id) {
     return -1;
 }
 
+// Compact the set of holes into one larger hole 
 void compact_memory() {
     int freeIndex = 0;
     for (int i = 0; i < blockCount; i++) {
@@ -131,6 +135,7 @@ void compact_memory() {
     blockCount = freeIndex + 1;
 }
 
+// Output the results of status memory
 void status() {
     int allocatedMemory = 0;
     int freeMemory = 0;
@@ -160,6 +165,7 @@ void status() {
     }
 }
 
+// Implementation
 int main(int argc, char *argv[]) {
     if (argc != 2) {
         printf("Usage: %s <initial_memory_size>\n", argv[0]);
