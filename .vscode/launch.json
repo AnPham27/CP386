@@ -8,8 +8,8 @@
       "args": [],
       "stopAtEntry": false,
       "externalConsole": true,
-      "cwd": "c:/Users/An Pham/OneDrive/VS Folders/CP386/CP386/a1",
-      "program": "c:/Users/An Pham/OneDrive/VS Folders/CP386/CP386/a1/build/Debug/outDebug",
+      "cwd": "c:/Users/An Pham/OneDrive/VS Folders/CP386/CP386/a4",
+      "program": "c:/Users/An Pham/OneDrive/VS Folders/CP386/CP386/a4/build/Debug/outDebug",
       "MIMode": "gdb",
       "miDebuggerPath": "gdb",
       "setupCommands": [
